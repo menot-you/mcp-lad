@@ -1,0 +1,27 @@
+# Memory Index
+
+## Directive 0 (above all else)
+- [Wisdom-Driven Methodology](feedback_directive_zero_wisdom.md) — every action begins with "is this the wise thing to do?" Pausing is a valid move. Clean > fast. All other rules serve this.
+
+## Feedback (how to work with @tiago.im)
+- [Senior Engineering Method](feedback_senior_engineering_method.md) — STOP before solving. Requirements → architecture → blast radius → hypotheses → experiments → clean solution. No gambiarra.
+- [Proactivity + Confidence Gating](feedback_proactivity_confidence.md) — trivial = execute, non-trivial = autonomous + confidence, critical = call codex/gemini CLI directly (no @oracle)
+- [Multi-Model Review Pattern](feedback_multi_model_review.md) — adversarial review loop; codex/gemini/opus find different bug classes (53+ real findings in LAD v0.8)
+- [Model Thinking Styles](feedback_model_thinking_styles.md) — each model hunts a different class of bug, use all 3 for complete coverage
+- [Canonical Engineering Pipeline](feedback_canonical_pipeline.md) — gold-standard pipeline from LAD v0.8 for serious implementation
+- [Quality Tier System](feedback_quality_tiers.md) — SSS-to-F canonical rating nomenclature
+- [Claude's Voice & Personality for LAD](feedback_claude_personality.md) — tone/energy to preserve across LAD sessions
+- [/lgtm Partial-Mitigation Cascade](feedback_lgtm_partial_mitigation_cascade.md) — cutover-class commits need 2-4 mitigation rounds; each fix can introduce narrower regression
+- [Async Codex Post-Commit Spirals](feedback_async_codex_postcommit_spirals.md) — post-commit hook returns 5000+ lines no VERDICT; per-file pre-commit hook is reliable
+- ['unknown' Sentinel Anti-pattern](feedback_unknown_sentinel_antipattern.md) — dual-state migrations must use NULL + COALESCE; NOT NULL DEFAULT '<sentinel>' creates cascade bugs
+
+## Project (LAD context)
+- [LAD Plus-Ultra Plan](project_lad_plus_ultra.md) — roadmap to replace Playwright: security + enterprise gold + feature parity
+- [LAD DX Roadmap](project_lad_dx_roadmap.md) — Gemini + Opus DX findings, priority-ranked
+- [LAD Manifesto](project_lad_manifesto.md) — raw AI-agent browser frustrations; launch/README source
+- [Claude's Testimony — LAD v0.8](project_lad_claude_testimony.md) — first-person sprint account for launch post
+- [LAD Next Session Prompt](project_lad_next_session_prompt.md) — resume context for the next Claude Code session
+- [Kata + Ollama Stack — 2026-04-15](project_kata_ollama_stack_2026_04_15.md) — full infra session: Kata runners, NVIDIA plugin, Ollama GPU, baked lad-runner image, BIOS SVM journey
+
+## Reference (external/infra pointers)
+- [nott-prod cluster ops](reference_nott_prod_cluster.md) — Talos + k3s cluster addresses, runtimes, extensions, BIOS prereqs, common commands

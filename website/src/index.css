@@ -1,0 +1,84 @@
+@import "tailwindcss";
+
+@theme {
+  --color-blurple: #5865F2;
+  --color-blurple-hover: #4752C4;
+  --color-blurple-active: #3C45A5;
+
+  /* Figma Brand Tokens (Nott) */
+  --color-brand-light: #f7f3f1;
+  --color-brand-sand: #c8a288;
+  --color-brand-orange-fade: #ce926d;
+  --color-brand-orange: #d0642b;
+  --color-brand-red: #6a363c;
+  --color-brand-maroon: #5e2f37;
+
+  /* Semantic Theme Tokens */
+  --color-background: var(--bg);
+  --color-foreground: var(--fg);
+  --color-muted: var(--muted-bg);
+  --color-muted-foreground: var(--muted-fg);
+  --color-card: var(--card-bg);
+  --color-card-foreground: var(--card-fg);
+  --color-border: var(--border);
+}
+
+:root {
+  /* Core System Theme - Light Mode Default */
+  --bg: #ffffff;
+  --fg: #09090b;
+  --muted-bg: #f4f4f5;
+  --muted-fg: #71717a;
+  --card-bg: #f4f4f5;
+  --card-fg: #18181b;
+  --border: #e4e4e7;
+
+  /* Tokens for Pixel Canvas Alpha Overlay */
+  --pixel-brand-light: #f7f3f133;
+  --pixel-brand-sand: #c8a28833;
+  --pixel-brand-orange-fade: #ce926d33;
+  --pixel-brand-orange: #d0642b33;
+  --pixel-brand-red: #6a363c33;
+  --pixel-brand-maroon: #5e2f3733;
+}
+
+.dark {
+  /* Dark Mode Theme */
+  --bg: #09090b;
+  --fg: #fafafa;
+  --muted-bg: #27272a;
+  --muted-fg: #a1a1aa;
+  --card-bg: #18181b;
+  --card-fg: #fafafa;
+  --border: #27272a;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: oklch(0.4 0 0);
+  border-radius: 3px;
+}
+
+/* Focus ring */
+*:focus-visible {
+  outline: 2px solid var(--color-blurple);
+  outline-offset: 2px;
+}
+
+/* View Transitions Support for Theme Toggle */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+::view-transition-group(root) {
+  animation: none;
+}
