@@ -1,3 +1,5 @@
+> ⚠️ **Read-only mirror.** Source of truth: [`menot-you/nott`](https://github.com/menot-you/nott) at `mcps/llm-as-dom/`. Open issues, PRs, and releases in the monorepo — pushes here are overwritten by the mirror.
+
 <div align="center">
 
 <img src="assets/logo.png" alt="nott" width="120" />
