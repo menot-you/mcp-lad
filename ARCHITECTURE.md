@@ -14,7 +14,7 @@
 ```
 src/
 ├── main.rs              CLI binary (lad --engine chromium|webkit)
-├── mcp_server.rs        MCP binary (llm-as-dom-mcp), 22 semantic tools
+├── mcp_server.rs        MCP binary (nott-mcp-lad), 22 semantic tools
 ├── lib.rs               Library root
 │
 ├── engine/              Browser engine abstraction
@@ -214,10 +214,10 @@ Bot challenges (Cloudflare, CAPTCHA, WAF) are detected and classified:
 
 ## MCP Protocol
 
-The MCP server (`llm-as-dom-mcp`) uses `rmcp 1.3` with stdio transport. Exposes **21 tools** across 9 categories.
+The MCP server (`nott-mcp-lad`) uses `rmcp 1.3` with stdio transport. Exposes **21 tools** across 9 categories.
 
 ```
-Client (Claude)                    llm-as-dom-mcp
+Client (Claude)                    nott-mcp-lad
     │                                 │
     ├─ initialize ───────────────────►│
     │◄──── capabilities (23 tools) ───┤

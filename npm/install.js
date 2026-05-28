@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Postinstall script: downloads the llm-as-dom-mcp binary from GitHub Releases.
+// Postinstall script: downloads the nott-mcp-lad binary from GitHub Releases.
 
 const { execSync } = require("child_process");
 const fs = require("fs");
@@ -7,7 +7,7 @@ const path = require("path");
 const https = require("https");
 
 const VERSION = require("./package.json").version;
-const BINARY = "llm-as-dom-mcp";
+const BINARY = "nott-mcp-lad";
 const REPO = "menot-you/llm-as-dom";
 
 function getPlatform() {

@@ -21,7 +21,7 @@
   },
   "bin": {
     "llm-as-dom": "./run.js",
-    "llm-as-dom-mcp": "./run.js"
+    "nott-mcp-lad": "./run.js"
   },
   "files": [
     "run.js",

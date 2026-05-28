@@ -9,7 +9,7 @@ import urllib.request
 
 __version__ = "0.10.0"
 
-BINARY = "llm-as-dom-mcp"
+BINARY = "nott-mcp-lad"
 REPO = "menot-you/llm-as-dom"
 
 

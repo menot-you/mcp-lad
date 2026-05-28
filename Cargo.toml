@@ -20,7 +20,7 @@ name = "lad"
 path = "src/main.rs"
 
 [[bin]]
-name = "llm-as-dom-mcp"
+name = "nott-mcp-lad"
 path = "src/mcp_server/mod.rs"
 
 [[bin]]

@@ -313,10 +313,10 @@ lad --url "https://staging.myapp.com/login" \
 
 ## MCP Server
 
-`llm-as-dom-mcp` turns your browser into a tool that Claude can call directly. **29 semantic tools** — full Playwright parity with 60x fewer tokens.
+`nott-mcp-lad` turns your browser into a tool that Claude can call directly. **29 semantic tools** — full Playwright parity with 60x fewer tokens.
 
 ```bash
-llm-as-dom-mcp  # starts MCP server (stdio)
+nott-mcp-lad  # starts MCP server (stdio)
 ```
 
 ### Autonomous
@@ -412,7 +412,7 @@ Every interaction tool (`lad_click`, `lad_type`, `lad_snapshot`, `lad_extract`, 
 {
   "mcpServers": {
     "lad": {
-      "command": "llm-as-dom-mcp",
+      "command": "nott-mcp-lad",
       "env": {
         "LAD_LLM_URL": "http://localhost:11434",
         "LAD_LLM_MODEL": "qwen2.5:7b",
@@ -549,7 +549,7 @@ The 3 extra WebKit elements are footer links that GitHub serves differently to S
 - **LLM fallback** (optional): Ollama with `qwen2.5:7b`
 
 ```bash
-cargo install menot-you-mcp-lad  # installs lad, llm-as-dom-mcp, and lad-relay
+cargo install menot-you-mcp-lad  # installs lad, nott-mcp-lad, and lad-relay
 # or: cargo install llm-as-dom
 # or: npx @menot-you/mcp-lad
 # or: pip install menot-you-mcp-lad

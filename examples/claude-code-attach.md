@@ -26,7 +26,7 @@ Create or edit `.claude/settings.json` at your project root:
 {
   "mcpServers": {
     "lad": {
-      "command": "llm-as-dom-mcp",
+      "command": "nott-mcp-lad",
       "env": {
         "LAD_ENGINE": "chromium",
         "LAD_LLM_URL": "http://localhost:11434",

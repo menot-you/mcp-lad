@@ -149,8 +149,8 @@ jobs:
       - name: Build lad
         run: cargo build --release --bin lad
 
-      - name: Build llm-as-dom-mcp
-        run: cargo build --release --bin llm-as-dom-mcp
+      - name: Build nott-mcp-lad
+        run: cargo build --release --bin nott-mcp-lad
 
       - name: Build lad-relay
         run: cargo build --release --bin lad-relay
@@ -161,7 +161,7 @@ jobs:
           name: binaries-linux-x86_64
           path: |
             target/release/lad
-            target/release/llm-as-dom-mcp
+            target/release/nott-mcp-lad
             target/release/lad-relay
 
   # ── Fixture Tests ──────────────────────────────────────────────────

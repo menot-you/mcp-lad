@@ -23,19 +23,19 @@ default: install
 
 # Build release binary in target/release/ and sign it in place
 build:
-    cargo build --release --bin llm-as-dom-mcp
-    codesign --force --sign - target/release/llm-as-dom-mcp
+    cargo build --release --bin nott-mcp-lad
+    codesign --force --sign - target/release/nott-mcp-lad
 
 # Atomic install to ~/.cargo/bin/ + sign destination
 # Safe to run while other Claude Code sessions are alive — cargo's atomic
 # rename preserves the inode that running MCP processes have mapped.
 install:
-    cargo install --path . --bin llm-as-dom-mcp --force
-    codesign --force --sign - ~/.cargo/bin/llm-as-dom-mcp
+    cargo install --path . --bin nott-mcp-lad --force
+    codesign --force --sign - ~/.cargo/bin/nott-mcp-lad
 
 # Confirm codesign state of installed binary
 verify:
-    @echo "== ~/.cargo/bin/llm-as-dom-mcp =="
-    codesign -dv ~/.cargo/bin/llm-as-dom-mcp 2>&1 | head -10
+    @echo "== ~/.cargo/bin/nott-mcp-lad =="
+    codesign -dv ~/.cargo/bin/nott-mcp-lad 2>&1 | head -10
     @echo ""
     @echo "Expected: Format=Mach-O thin (arm64) / Signature=adhoc"

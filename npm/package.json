@@ -18,7 +18,7 @@
   ],
   "bin": {
     "mcp-lad": "run.js",
-    "llm-as-dom-mcp": "run.js"
+    "nott-mcp-lad": "run.js"
   },
   "scripts": {
     "postinstall": "node install.js"

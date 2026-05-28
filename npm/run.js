@@ -1,11 +1,11 @@
 #!/usr/bin/env node
-// Wrapper that spawns the llm-as-dom-mcp binary with passthrough args.
+// Wrapper that spawns the nott-mcp-lad binary with passthrough args.
 
 const { execFileSync } = require("child_process");
 const path = require("path");
 const fs = require("fs");
 
-const BINARY = "llm-as-dom-mcp";
+const BINARY = "nott-mcp-lad";
 const binaryPath = path.join(__dirname, BINARY);
 
 if (!fs.existsSync(binaryPath)) {
