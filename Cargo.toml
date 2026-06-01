@@ -1,0 +1,122 @@
+[package]
+name = "nott-mcp-lad"
+workspace = "../../rust"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+description = "AI browser pilot — test your app 60x cheaper. Heuristics + cheap LLM navigate so expensive models never parse HTML."
+license.workspace = true
+repository = "https://github.com/menot-you/llm-as-dom"
+homepage = "https://github.com/menot-you/llm-as-dom"
+readme = "README.md"
+keywords = ["browser", "automation", "mcp", "ai-agent", "headless"]
+categories = ["development-tools::testing", "web-programming"]
+exclude = ["assets/", "fixtures/", "bench/", "docs/", "demo.tape", "README.md.bak", ".github/", ".githooks/"]
+
+[lib]
+name = "llm_as_dom"
+path = "src/lib.rs"
+
+[[bin]]
+name = "lad"
+path = "src/main.rs"
+
+[[bin]]
+name = "nott-mcp-lad"
+path = "src/mcp_server/mod.rs"
+
+[[bin]]
+name = "lad-relay"
+path = "src/relay/main.rs"
+
+[dependencies]
+# Browser (CDP)
+# Upgraded to 0.9 for Chromium 145+ CDP compatibility. chromiumoxide 0.7
+# panics on PermissionBlock enum variant in Network.privateNetworkRequestPolicy
+# which CloakBrowser (Chromium 145) emits, killing the WS handler stream.
+chromiumoxide = { version = "0.9", default-features = false, features = ["rustls", "zip8"] }
+futures = "0.3"
+
+# Async runtime
+tokio = { version = "1", features = ["full"] }
+
+# Serialization
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+# HTTP client (Ollama API) — rustls-only, no native-tls/OpenSSL in the tree.
+reqwest = { version = "0.13.4", default-features = false, features = ["json", "rustls"] }
+
+# CLI
+clap = { version = "4", features = ["derive"] }
+
+# Logging
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+# MCP (Model Context Protocol)
+rmcp = { version = "1.7", features = ["server", "transport-io"] }
+
+# Base64 encoding (screenshots)
+base64 = "0.22"
+
+# SQLite (Chrome cookie extraction)
+rusqlite = { version = "0.39", features = ["bundled"] }
+
+# Cookie decryption (Chrome Safe Storage)
+aes = "0.9"
+cbc = { version = "0.2", features = ["alloc"] }
+pbkdf2 = { version = "0.13", features = ["hmac"] }
+sha1 = { version = "0.11", default-features = false }
+
+# URL parsing (SSRF protection in sanitize module)
+url = "2.5.8"
+
+# Regex (case-insensitive injection pattern matching, FIX-6)
+regex = "1"
+
+# Cryptographic hashing (FIX-13: audit trail for lad_eval scripts)
+sha2 = "0.11"
+
+# CSPRNG for prompt boundary generation (FIX-R3-06)
+getrandom = "0.4"
+
+# Secure temp directory creation (FIX-R3-12)
+tempfile = "3"
+
+# WebSocket (relay transport)
+tokio-tungstenite = "0.29"
+
+# QR code rendering (relay terminal output)
+qrcode = "0.14"
+
+# Bonjour/mDNS discovery (relay)
+mdns-sd = "0.20"
+# NOTE: we used to depend directly on `flume = "0.12"` for `RecvTimeoutError`,
+# but mdns-sd 0.20 still pulls in `flume 0.11` transitively. Two flume major
+# versions in the dep graph caused a type mismatch where our match arm compiled
+# against 0.12 while the Receiver yielded 0.11 errors. Discrimination is now
+# Debug-string-based in `relay::discovery`, so we don't need the direct dep.
+hostname = "0.4"
+http = "1"
+
+# Misc
+async-trait = "0.1"
+thiserror = "2"
+
+# Wave 1: jq engine for the `lad_jq` MCP tool.
+# jaq is a pure-Rust jq interpreter split into several small crates; we need
+# the core engine, the stdlib (length, map, select...), and the JSON value
+# backend with serde support so we can feed `serde_json::Value` through.
+jaq-core = "3.0"
+jaq-std = "3.0"
+jaq-json = { version = "2.0", features = ["serde"] }
+sentry = { version = "0.48.2", default-features = false, features = ["panic", "tracing", "reqwest", "rustls", "anyhow", "backtrace", "contexts"] }
+
+[dev-dependencies]
+criterion = { version = "0.8", features = ["html_reports"] }
+proptest = "1"
+
+[[bench]]
+name = "core"
+harness = false

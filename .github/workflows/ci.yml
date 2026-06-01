@@ -1,0 +1,272 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+# Keep at most one active run per ref. Rapid-fire pushes cancel older
+# runs instead of piling up and starving the 3-slot self-hosted pool.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CARGO_TERM_COLOR: always
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+  RUSTFLAGS: "-D warnings"
+
+jobs:
+  # ── Security & Quality ─────────────────────────────────────────────
+  deny:
+    name: cargo deny
+    runs-on: nott-runners
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: dtolnay/rust-toolchain@5b842231ba77f5c045dba54ac5560fed2db780e2 # nightly
+      - uses: taiki-e/install-action@095d17ff8e68bec1be4a23180d476e78015114e4 # cargo-deny
+      - name: cargo deny check
+        run: cargo deny check
+
+  audit:
+    name: cargo audit
+    runs-on: nott-runners
+    env:
+      # `nott-runners` pre-sets RUSTC_WRAPPER=sccache and CC=sccache cc but
+      # `sccache` is not in PATH. `rustsec/audit-check` does
+      # `cargo install cargo-audit`, which pulls `aws-lc-sys` (cc-rs C build) —
+      # both rustc and cc invocations hit the missing wrapper. Same workaround
+      # as `msrv pinned`: explicit unset. Drop once the runner image ships
+      # sccache or stops exporting wrappers unconditionally.
+      RUSTC_WRAPPER: ""
+      CC: "cc"
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Install build toolchain (gcc, pkg-config)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential pkg-config
+      - uses: dtolnay/rust-toolchain@5b842231ba77f5c045dba54ac5560fed2db780e2 # nightly
+      - uses: rustsec/audit-check@69366f33c96575abad1ee0dba8212993eecbe998 # v2.0.0
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+  coverage:
+    name: coverage
+    runs-on: nott-runners
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Install build toolchain (gcc, pkg-config)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential pkg-config
+      - uses: dtolnay/rust-toolchain@5b842231ba77f5c045dba54ac5560fed2db780e2 # nightly
+      - name: Install cargo-llvm-cov
+        uses: taiki-e/install-action@2d5b196a2dc9984a136f1a2a41e1a33631d7c261 # cargo-llvm-cov
+      - name: Generate code coverage
+        run: cargo llvm-cov --all-features --workspace --lcov --output-path lcov.info
+      - name: Upload coverage to Codecov
+        # Non-blocking: CODECOV_TOKEN is not set yet. codecov-action@v4 requires the
+        # token (v3 allowed tokenless uploads for public repos). Remove this flag
+        # once the secret is provisioned at the repo/org level.
+        continue-on-error: true
+        uses: codecov/codecov-action@e79a6962e0d4c0c17b229090214935d2e33f8354 # v6.0.1
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: lcov.info
+
+  msrv:
+    name: msrv pinned
+    runs-on: nott-runners
+    env:
+      # `nott-runners` image pre-sets RUSTC_WRAPPER=sccache but `sccache` is
+      # not in the runner user's PATH. Other Rust jobs paper over it via
+      # `Swatinem/rust-cache@v2`, which overrides the wrapper. msrv runs
+      # without rust-cache (no caching needed for a single-toolchain check),
+      # so unset the wrapper explicitly. Drop this once the runner image
+      # ships `sccache` in PATH or stops exporting RUSTC_WRAPPER unconditionally.
+      RUSTC_WRAPPER: ""
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Install build toolchain (gcc, pkg-config)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential pkg-config
+      - uses: dtolnay/rust-toolchain@5b842231ba77f5c045dba54ac5560fed2db780e2 # nightly
+        with:
+          # Bumped from nightly-2025-08-01 (rustc 1.88) — src/mcp_server/tools/browse.rs
+          # uses ceil_char_boundary (feature round_char_boundary), stabilized in 1.93.
+          toolchain: nightly-2025-12-01
+      - name: cargo check
+        run: cargo check --all-targets --all-features
+
+  # ── Check ──────────────────────────────────────────────────────────
+  check:
+    name: fmt + clippy + test
+    runs-on: nott-runners
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Install build toolchain (gcc, pkg-config)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential pkg-config
+
+      - uses: dtolnay/rust-toolchain@5b842231ba77f5c045dba54ac5560fed2db780e2 # nightly
+        with:
+          components: rustfmt, clippy
+
+      - uses: Swatinem/rust-cache@e18b497796c12c097a38f9edb9d0641fb99eee32 # v2
+
+      - name: cargo fmt --check
+        run: cargo fmt --check
+
+      - name: cargo clippy
+        run: cargo clippy --all-targets -- -D warnings
+
+      - name: cargo test (unit only)
+        run: cargo test
+
+  # ── Build ──────────────────────────────────────────────────────────
+  build:
+    name: build release
+    runs-on: nott-runners
+    needs: check
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Install build toolchain (gcc, pkg-config)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential pkg-config
+
+      - uses: dtolnay/rust-toolchain@5b842231ba77f5c045dba54ac5560fed2db780e2 # nightly
+
+      - uses: Swatinem/rust-cache@e18b497796c12c097a38f9edb9d0641fb99eee32 # v2
+
+      - name: Build lad
+        run: cargo build --release --bin lad
+
+      - name: Build nott-mcp-lad
+        run: cargo build --release --bin nott-mcp-lad
+
+      - name: Build lad-relay
+        run: cargo build --release --bin lad-relay
+
+      - name: Upload binaries
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        with:
+          name: binaries-linux-x86_64
+          path: |
+            target/release/lad
+            target/release/nott-mcp-lad
+            target/release/lad-relay
+
+  # ── Fixture Tests ──────────────────────────────────────────────────
+  # Build-once, test-many: consume the `lad` binary produced by the `build`
+  # job instead of re-compiling inside the Kata microVM. Kata's virtio-net
+  # (via Cloud Hypervisor) has high throughput variance under load (measured
+  # 9x range on the same rustup install vs ~1x under runc). Running cargo
+  # + rustup inside the microVM made CI flaky. Downloading a ~30MB artifact
+  # is a 10s operation with small blast radius if the network hiccups.
+  fixture-tests:
+    name: fixture tests (chrome + local server)
+    runs-on: llm-as-dom-kata-runners
+    needs: build
+    env:
+      # cloakbrowser has no pinned build for runner host — fall back to default Chromium.
+      LAD_CLOAK_DISABLE: "1"
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      # NB: actions/download-artifact@v7+ Node action hangs 10min in kata-qemu
+      # (Node ABI / syscall incompat). Probe 2026-05-02 confirmed `gh run
+      # download` works in 24s for the same artifact in the same kata pod.
+      - name: Download binaries (gh CLI — kata-safe)
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mkdir -p target/release
+          gh run download "${{ github.run_id }}" \
+            --repo "${{ github.repository }}" \
+            --name binaries-linux-x86_64 \
+            --dir target/release
+
+      - name: Restore executable bit
+        run: chmod +x target/release/lad
+
+      - name: Run fixture smoke tests
+        run: ./fixtures/smoke_test.sh ./target/release/lad
+
+  # ── Integration ────────────────────────────────────────────────────
+  integration:
+    name: integration (chrome)
+    runs-on: llm-as-dom-kata-runners
+    needs: build
+    env:
+      LAD_CLOAK_DISABLE: "1"
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      # See fixture-tests step above re: kata-qemu + actions/download-artifact hang.
+      - name: Download binaries (gh CLI — kata-safe)
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mkdir -p target/release
+          gh run download "${{ github.run_id }}" \
+            --repo "${{ github.repository }}" \
+            --name binaries-linux-x86_64 \
+            --dir target/release
+
+      - name: Restore executable bit
+        run: chmod +x target/release/lad
+
+      - name: Smoke test — example.com extraction
+        run: |
+          timeout 60 ./target/release/lad --url "https://example.com" --extract-only || exit 1
+
+      - name: Smoke test — HN login extraction
+        run: |
+          timeout 60 ./target/release/lad --url "https://news.ycombinator.com/login" --extract-only || exit 1
+
+  # ── LLM Smoke Test (Z.AI) ───────────────────────────────────────────
+  llm-smoke:
+    name: llm smoke (Z.AI GLM)
+    runs-on: nott-runners
+    needs: build
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    env:
+      Z_AI_API_KEY: ${{ secrets.Z_AI_API_KEY }}
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Run LLM benchmark (Z.AI models only)
+        run: |
+          python3 bench/run_benchmark.py 2>&1 | tee /tmp/bench-results.txt
+          # Fail if any model scored 0
+          if grep -q "0/4" /tmp/bench-results.txt; then
+            echo "FAIL: at least one model scored 0/4"
+            exit 1
+          fi
+
+      - name: Upload benchmark results
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        if: always()
+        with:
+          name: llm-benchmark-results
+          path: bench/results.json
+
+  # ── Release path ────────────────────────────────────────────────────
+  # All publish/release jobs moved out of ci.yml to kill overlap with
+  # release-plz.yml + release-binaries.yml (see issue #20).
+  #
+  # Source of truth per artifact after dedupe:
+  #   - git tag + GitHub Release    -> release-plz action (release-plz.yml)
+  #   - crates.io publish           -> release-plz action (release-plz.yml)
+  #   - npm + PyPI publish          -> publish-ecosystems job (release-plz.yml)
+  #   - multi-platform binaries     -> release-binaries.yml (5 targets, cosign signed)
+  #
+  # ci.yml is now purely quality + security gates, running on push/PR.

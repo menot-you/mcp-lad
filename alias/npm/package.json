@@ -1,0 +1,30 @@
+{
+  "name": "llm-as-dom",
+  "version": "0.10.0",
+  "description": "AI browser pilot — test your app 60x cheaper. (Alias for @menot-you/mcp-lad)",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/menot-you/llm-as-dom"
+  },
+  "homepage": "https://github.com/menot-you/llm-as-dom",
+  "keywords": [
+    "browser",
+    "automation",
+    "mcp",
+    "ai-agent",
+    "headless",
+    "llm"
+  ],
+  "dependencies": {
+    "@menot-you/mcp-lad": "0.10.0"
+  },
+  "bin": {
+    "llm-as-dom": "./run.js",
+    "nott-mcp-lad": "./run.js"
+  },
+  "files": [
+    "run.js",
+    "README.md"
+  ]
+}
